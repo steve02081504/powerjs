@@ -1,0 +1,32 @@
+name: build-lib-node
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script
+        shell: pwsh
+        run: |
+          mkdir libnode
+          cd libnode
+          git clone https://github.com/jasongin/nodejs -b napi-libnode-v20.9.0 --single-branch . --depth 1
+          .\vcbuild.bat x64 release dll openssl-no-asm
+          Copy-Item .\out\Release\*.dll ..\ -Force
+      - name: git add all
+        run: git add -A
+      - name: push
+        uses: actions-go/push@master
+        with:
+          author-email: taromati2@outlook.com
+          author-name: Taromati2
+          commit-message: 'file update~'
+          remote: origin
+          token: ${{ secrets.GITHUB_TOKEN }}
